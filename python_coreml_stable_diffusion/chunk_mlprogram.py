@@ -227,6 +227,30 @@ def _make_second_chunk_prog(prog, op_idx):
 
     return prog
 
+def chunk_mlprogram_parity_check(mlmodel, chunk_size):
+    total_chunks = len(mlmodel._spec.neuralNetwork.layers)
+    
+    for chunk_start in range(0, total_chunks, chunk_size):
+        chunk_end = min(chunk_start + chunk_size, total_chunks)
+        
+        logger.info(f"Checking chunk {chunk_start + 1} to {chunk_end} of {total_chunks}...")
+        
+        # Check and update compute units for layers in the current chunk
+        for i in range(chunk_start, chunk_end):
+            layer = mlmodel._spec.neuralNetwork.layers[i]
+           
+            # Perform your compute unit parity check logic here
+            # For example, you can check layer type, name, or any other criteria to determine the compute unit
+            # You can set the 'compute_units' attribute accordingly
+            
+            # Example: If the layer name contains 'CPU', set compute_units to CPU_ONLY
+            if 'CPU' in layer.name:
+                layer.parameters.computeUnits = ct.ComputeUnit.CPU_ONLY
+            else:
+                layer.parameters.computeUnits = ct.ComputeUnit.GPU_ONLY
+    
+    logger.info("Chunk-based ML program parity check completed.")
+
 
 def main(args):
     os.makedirs(args.o, exist_ok=True)
